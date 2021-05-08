@@ -43,7 +43,6 @@ export default class MyPlugin extends Plugin {
       const editor = this.getEditor();
       const cursorInfo = this.getCursorInfo(editor);
 
-      console.log("click", event.code, event.key, event.keyCode);
       const code = event.code;
       const key = event.key;
       const shiftKey = event.shiftKey;
