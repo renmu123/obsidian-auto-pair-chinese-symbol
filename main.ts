@@ -5,6 +5,8 @@ import {
   Plugin,
   PluginSettingTab,
   Setting,
+  MarkdownView,
+  Editor,
 } from "obsidian";
 
 interface MyPluginSettings {
@@ -27,9 +29,24 @@ export default class MyPlugin extends Plugin {
       // console.log("codemirror", cm);
     });
 
-    this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-      // console.log("click", evt);
+    this.registerDomEvent(document, "keydown", (event: KeyboardEvent) => {
+      // 《》 【】（）‘’ “”
+      const editor = this.getEditor();
+      console.log("click", event.code, event.key, event);
+      const code = event.code;
+      const key = event.key;
+      const shiftKey = event.shiftKey;
+      if (code === "Comma" && key == "Process" && shiftKey === true) {
+        editor;
+      }
     });
+
+    // document.addEventListener("keydown", event => {
+    //   if (event.isComposing || event.keyCode === 229) {
+    //     return;
+    //   }
+    //   // do something
+    // });
   }
 
   onunload() {}
@@ -40,6 +57,19 @@ export default class MyPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  getCursorInfo(editor: Editor) {
+    return editor.getCursor();
+  }
+
+  getEditor() {
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (mdView) {
+      return mdView.editor;
+    } else {
+      return null;
+    }
   }
 }
 
