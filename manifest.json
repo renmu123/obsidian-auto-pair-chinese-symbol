@@ -1,7 +1,7 @@
 {
 	"id": "auto-pair-chinese-symbol",
 	"name": "auto-pair-chinese-symbol",
-	"version": "0.0.1",
+	"version": "0.5.0",
 	"minAppVersion": "0.9.12",
 	"description": "obsidian-auto-pair-chinese-symbol",
 	"author": "renmu123",

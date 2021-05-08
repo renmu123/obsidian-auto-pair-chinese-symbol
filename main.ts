@@ -36,11 +36,7 @@ export default class MyPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
 
-    this.addSettingTab(new SampleSettingTab(this.app, this));
-
-    this.registerCodeMirror((cm: CodeMirror.Editor) => {
-      // console.log("codemirror", cm);
-    });
+    // this.addSettingTab(new SampleSettingTab(this.app, this));
 
     this.registerDomEvent(document, "keydown", (event: KeyboardEvent) => {
       // 《》 【】（）‘’ “”
@@ -116,13 +112,6 @@ export default class MyPlugin extends Plugin {
         }
       }
     });
-
-    // document.addEventListener("keydown", event => {
-    //   if (event.isComposing || event.keyCode === 229) {
-    //     return;
-    //   }
-    //   // do something
-    // });
   }
 
   onunload() {}
@@ -162,22 +151,6 @@ export default class MyPlugin extends Plugin {
     } else {
       return null;
     }
-  }
-}
-
-class SampleModal extends Modal {
-  constructor(app: App) {
-    super(app);
-  }
-
-  onOpen() {
-    let { contentEl } = this;
-    contentEl.setText("Woah!");
-  }
-
-  onClose() {
-    let { contentEl } = this;
-    contentEl.empty();
   }
 }
 
