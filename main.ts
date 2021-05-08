@@ -1,6 +1,5 @@
 import {
   App,
-  Modal,
   Plugin,
   PluginSettingTab,
   Setting,
@@ -35,19 +34,23 @@ export default class MyPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
-
     // this.addSettingTab(new SampleSettingTab(this.app, this));
-
+    this.registerCodeMirror(cm => {
+      cm.on("change", this.change);
+    });
     this.registerDomEvent(document, "keydown", (event: KeyboardEvent) => {
-      // 《》 【】（）‘’ “”
       const editor = this.getEditor();
       const cursorInfo = this.getCursorInfo(editor);
 
+      // console.log("keydown", event.code, event.key, event);
       const code = event.code;
       const key = event.key;
       const shiftKey = event.shiftKey;
 
-      const char = this.getChar(editor, cursorInfo, cursorInfo);
+      const value = editor.getRange(
+        { ...cursorInfo, ch: cursorInfo.ch - 2 },
+        { ...cursorInfo, ch: cursorInfo.ch + 1 }
+      );
 
       const pairObject: PairObject = {
         Comma: {
@@ -72,12 +75,6 @@ export default class MyPlugin extends Plugin {
             right: "】",
             code: "BracketLeft",
             shiftKey: false,
-          },
-          1: {
-            left: "{",
-            right: "}",
-            code: "BracketLeft",
-            shiftKey: true,
           },
         },
         Quote: {
@@ -113,7 +110,38 @@ export default class MyPlugin extends Plugin {
     });
   }
 
-  onunload() {}
+  change(cm: CodeMirror.Editor, obj: CodeMirror.EditorChange) {
+    if (obj.origin === "+delete") {
+      const pairs = {
+        "【": "】",
+        "《": "》",
+        "（": "）",
+        "‘": "’",
+        "“": "”",
+      };
+      if (pairs.hasOwnProperty(obj.removed[0])) {
+        const value = cm.getRange(
+          { line: obj.from.line, ch: obj.from.ch },
+          { line: obj.from.line, ch: obj.from.ch + 1 }
+        );
+        if (value === pairs[obj.removed[0]]) {
+          const cur = cm.getCursor();
+          cm.replaceRange(
+            "",
+            { line: cur.line, ch: cur.ch },
+            { line: cur.line, ch: cur.ch + 1 },
+            "+delete"
+          );
+        }
+      }
+    }
+  }
+
+  onunload() {
+    this.app.workspace.iterateCodeMirrors(cm => {
+      cm.off("change", this.change);
+    });
+  }
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -132,13 +160,6 @@ export default class MyPlugin extends Plugin {
     editor.replaceRange(replace, from, to);
   }
 
-  getChar(editor: Editor, from: EditorPosition, to: EditorPosition) {
-    const newFrom = {
-      ...from,
-      ch: from.ch - 1,
-    };
-    return editor.getRange(newFrom, to);
-  }
   getCursorInfo(editor: Editor) {
     return editor.getCursor();
   }
