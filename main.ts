@@ -9,11 +9,11 @@ import {
 } from "obsidian";
 
 interface MyPluginSettings {
-  mySetting: string;
+  mySetting: boolean;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-  mySetting: "default",
+  mySetting: false,
 };
 
 interface Pair {
@@ -29,12 +29,13 @@ interface PairObject {
   };
 }
 
-export default class MyPlugin extends Plugin {
+export default class AutoPairPlugin extends Plugin {
   settings: MyPluginSettings;
+  static changeList: CodeMirror.EditorChange[] = [];
 
   async onload() {
     await this.loadSettings();
-    // this.addSettingTab(new SampleSettingTab(this.app, this));
+    this.addSettingTab(new SampleSettingTab(this.app, this));
     this.registerCodeMirror(cm => {
       cm.on("change", this.change);
     });
@@ -46,11 +47,6 @@ export default class MyPlugin extends Plugin {
       const code = event.code;
       const key = event.key;
       const shiftKey = event.shiftKey;
-
-      const value = editor.getRange(
-        { ...cursorInfo, ch: cursorInfo.ch - 2 },
-        { ...cursorInfo, ch: cursorInfo.ch + 1 }
-      );
 
       const pairObject: PairObject = {
         Comma: {
@@ -93,6 +89,8 @@ export default class MyPlugin extends Plugin {
         },
       };
 
+      const allowSelect = this.settings.mySetting;
+
       if (key == "Process") {
         const pairs = pairObject[code];
         if (pairs === undefined) {
@@ -102,8 +100,31 @@ export default class MyPlugin extends Plugin {
           if (pair === undefined) {
             return;
           } else {
-            this.insert(editor, pair.right, cursorInfo, cursorInfo);
-            editor.setCursor(cursorInfo);
+            if (editor.somethingSelected()) {
+              if (allowSelect) {
+                const selected = editor.getSelection();
+                const to = cursorInfo;
+                const from = {
+                  line: cursorInfo.line,
+                  ch: cursorInfo.ch - selected.length,
+                };
+
+                const mdView = this.app.workspace.getActiveViewOfType(
+                  MarkdownView
+                );
+                mdView.sourceMode.cmEditor.replaceRange(
+                  `${pair.left}${selected}${pair.right}`,
+                  from,
+                  to,
+                  "*chineseSymbol"
+                );
+              } else {
+              }
+            } else {
+              console.log("aaa");
+              this.insert(editor, pair.right, cursorInfo, cursorInfo);
+              editor.setCursor(cursorInfo);
+            }
           }
         }
       }
@@ -111,6 +132,23 @@ export default class MyPlugin extends Plugin {
   }
 
   change(cm: CodeMirror.Editor, obj: CodeMirror.EditorChange) {
+    // console.log(obj);
+
+    if (AutoPairPlugin.changeList.length === 2) {
+      AutoPairPlugin.changeList.shift();
+    }
+    AutoPairPlugin.changeList.push(obj);
+
+    if (
+      AutoPairPlugin.changeList.length === 2 &&
+      AutoPairPlugin.changeList[0].origin === "*chineseSymbol"
+    ) {
+      const from = AutoPairPlugin.changeList[1].from;
+      const to = AutoPairPlugin.changeList[1].to;
+      // cm.replaceRange("", from, { line: to.line, ch: to.ch + 1 }, "*compose");
+      cm.undo();
+    }
+
     if (obj.origin === "+delete") {
       const pairs = {
         "【": "】",
@@ -175,9 +213,9 @@ export default class MyPlugin extends Plugin {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-  plugin: MyPlugin;
+  plugin: AutoPairPlugin;
 
-  constructor(app: App, plugin: MyPlugin) {
+  constructor(app: App, plugin: AutoPairPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -187,20 +225,17 @@ class SampleSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Settings for my awesome plugin." });
+    containerEl.createEl("h2", { text: "Auto pair chinese symbol setting" });
 
     new Setting(containerEl)
-      .setName("Setting #1")
-      .setDesc("It's a secret")
-      .addText(text =>
-        text
-          .setPlaceholder("Enter your secret")
-          .setValue("")
-          .onChange(async value => {
-            console.log("Secret: " + value);
-            this.plugin.settings.mySetting = value;
-            await this.plugin.saveSettings();
-          })
+      .setName("选择文字后插入")
+      .setDesc("如果是，选中文字后插入符号会自动包裹")
+      .addToggle(text =>
+        text.setValue(this.plugin.settings.mySetting).onChange(async value => {
+          console.log("Secret: " + value);
+          this.plugin.settings.mySetting = value;
+          await this.plugin.saveSettings();
+        })
       );
   }
 }
