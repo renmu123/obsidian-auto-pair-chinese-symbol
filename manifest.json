@@ -6,5 +6,5 @@
 	"description": "obsidian-auto-pair-chinese-symbol",
 	"author": "renmu123",
 	"authorUrl": "https://github.com/renmu123/obsidian-auto-pair-chinese-symbol",
-	"isDesktopOnly": false
+	"isDesktopOnly": true
 }
