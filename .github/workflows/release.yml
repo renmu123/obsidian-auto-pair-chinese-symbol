@@ -1,4 +1,3 @@
-```yaml
 name: Build plugin
 
 on:
@@ -69,4 +68,3 @@ jobs:
           asset_path: ./manifest.json
           asset_name: manifest.json
           asset_content_type: application/json
-```
