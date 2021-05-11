@@ -43,18 +43,15 @@ export default class AutoPairPlugin extends Plugin {
     });
   }
   change = (cm: CodeMirror.Editor, obj: CodeMirror.EditorChange) => {
-    if (obj.origin === "*compose") {
-      console.log(obj);
-      const symbol = obj.text[0];
-      const cursorInfo = cm.getCursor();
-      const pair = this.pairs[symbol];
-      if (pair === undefined) {
-        return;
-      }
-
-      cm.replaceRange(pair, cursorInfo, cursorInfo, "*composeSymbol");
-      cm.setCursor(cursorInfo);
+    const symbol = obj.text[0];
+    const cursorInfo = cm.getCursor();
+    const pair = this.pairs[symbol];
+    if (pair === undefined) {
+      return;
     }
+
+    cm.replaceRange(pair, cursorInfo, cursorInfo, "*composeSymbol");
+    cm.setCursor(cursorInfo);
 
     if (obj.origin === "+delete") {
       const pair = this.pairs[obj.removed[0]];
