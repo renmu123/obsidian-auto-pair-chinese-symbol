@@ -1,9 +1,9 @@
 {
 	"id": "auto-pair-chinese-symbol",
-	"name": "auto-pair-chinese-symbol",
+	"name": "Auto pair chinese symbol",
 	"version": "0.8.2",
 	"minAppVersion": "0.9.12",
-	"description": "obsidian-auto-pair-chinese-symbol",
+	"description": "Auto pair chinese symbol",
 	"author": "renmu123",
 	"authorUrl": "https://github.com/renmu123/obsidian-auto-pair-chinese-symbol",
 	"isDesktopOnly": true
