@@ -2,10 +2,12 @@ import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 
 interface MyPluginSettings {
   allowSelectEmbed: boolean;
+  allowQuote: boolean;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
   allowSelectEmbed: false,
+  allowQuote: true,
 };
 
 interface Pair {
@@ -13,12 +15,6 @@ interface Pair {
   right: string;
   code: string;
   shiftKey: boolean;
-}
-
-interface PairObject {
-  [code: string]: {
-    [shiftKey: string]: Pair;
-  };
 }
 
 export default class AutoPairPlugin extends Plugin {
@@ -47,10 +43,12 @@ export default class AutoPairPlugin extends Plugin {
     const symbol = obj.text[0];
     const cursorInfo = cm.getCursor();
     const pair = this.pairs[symbol];
-    console.log(symbol, obj);
+
     if (pair) {
-      cm.replaceRange(pair, cursorInfo, cursorInfo, "*composeSymbol");
+      // 当有配对的符号时，替换后一个符号为配对的符号
+      cm.replaceRange(pair, cursorInfo, cursorInfo, "*composeSymbolAdd");
       cm.setCursor(cursorInfo);
+      return;
     }
 
     if (obj.origin === "+delete") {
@@ -82,7 +80,6 @@ export default class AutoPairPlugin extends Plugin {
         { line: obj.from.line, ch: obj.from.ch + 2 },
         { line: obj.from.line, ch: obj.from.ch + 4 }
       );
-      console.log("value", value);
       if (value === "】】") {
         cm.replaceRange(
           "",
@@ -90,6 +87,28 @@ export default class AutoPairPlugin extends Plugin {
           { line: cursorInfo.line, ch: cursorInfo.ch + 2 },
           "+delete"
         );
+      }
+    }
+
+    if (this.settings.allowQuote && obj.origin !== "*composeSymbolAdd") {
+      console.log(obj);
+      if (obj.text[0] === "”") {
+        cm.replaceRange(
+          "“”",
+          { line: cursorInfo.line, ch: cursorInfo.ch - 1 },
+          { line: cursorInfo.line, ch: cursorInfo.ch },
+          "*composeSymbol222"
+        );
+        cm.setCursor({ line: cursorInfo.line, ch: cursorInfo.ch });
+      }
+      if (obj.text[0] === "’") {
+        cm.replaceRange(
+          "‘",
+          { line: cursorInfo.line, ch: cursorInfo.ch - 1 },
+          { line: cursorInfo.line, ch: cursorInfo.ch },
+          "*composeSymbol"
+        );
+        cm.setCursor({ line: cursorInfo.line, ch: cursorInfo.ch });
       }
     }
   };
@@ -142,7 +161,7 @@ class SampleSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Auto pair chinese symbol setting" });
+    containerEl.createEl("h2", { text: "中文符号自动补齐" });
 
     new Setting(containerEl)
       .setName("允许选中文字后在两边插入符号")
@@ -153,6 +172,15 @@ class SampleSettingTab extends PluginSettingTab {
             this.plugin.settings.allowSelectEmbed = value;
             await this.plugin.saveSettings();
           })
+      );
+
+    new Setting(containerEl)
+      .setName("允许对下单引号和下双引号向前自动补齐")
+      .addToggle(text =>
+        text.setValue(this.plugin.settings.allowQuote).onChange(async value => {
+          this.plugin.settings.allowQuote = value;
+          await this.plugin.saveSettings();
+        })
       );
   }
 }
