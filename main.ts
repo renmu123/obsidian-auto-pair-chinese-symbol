@@ -47,12 +47,11 @@ export default class AutoPairPlugin extends Plugin {
     const symbol = obj.text[0];
     const cursorInfo = cm.getCursor();
     const pair = this.pairs[symbol];
-    if (pair === undefined) {
-      return;
+    console.log(symbol, obj);
+    if (pair) {
+      cm.replaceRange(pair, cursorInfo, cursorInfo, "*composeSymbol");
+      cm.setCursor(cursorInfo);
     }
-
-    cm.replaceRange(pair, cursorInfo, cursorInfo, "*composeSymbol");
-    cm.setCursor(cursorInfo);
 
     if (obj.origin === "+delete") {
       const pair = this.pairs[obj.removed[0]];
