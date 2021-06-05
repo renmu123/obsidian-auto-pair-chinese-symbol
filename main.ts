@@ -76,6 +76,22 @@ export default class AutoPairPlugin extends Plugin {
         "+delete"
       );
     }
+    // 处理双击【【后软件的自动处理
+    if (obj.removed[0] === "【【") {
+      const value = cm.getRange(
+        { line: obj.from.line, ch: obj.from.ch + 2 },
+        { line: obj.from.line, ch: obj.from.ch + 4 }
+      );
+      console.log("value", value);
+      if (value === "】】") {
+        cm.replaceRange(
+          "",
+          { line: cursorInfo.line, ch: cursorInfo.ch },
+          { line: cursorInfo.line, ch: cursorInfo.ch + 2 },
+          "+delete"
+        );
+      }
+    }
   };
   beforeChange = (cm: CodeMirror.Editor, obj: CodeMirror.EditorChange) => {
     const allowSelectEmbed = this.settings.allowSelectEmbed;
