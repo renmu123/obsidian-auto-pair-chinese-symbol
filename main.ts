@@ -30,6 +30,7 @@ export default class AutoPairPlugin extends Plugin {
     "（": "）",
     "‘": "’",
     "“": "”",
+    "「": "」",
   };
 
   async onload() {
