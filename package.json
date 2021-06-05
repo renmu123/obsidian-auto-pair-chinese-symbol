@@ -1,6 +1,6 @@
 {
   "name": "auto-pair-chinese-symbol",
-  "version": "0.9.0",
+  "version": "0.9.5",
   "description": "auto-pair-chinese-symbol",
   "main": "main.js",
   "scripts": {
